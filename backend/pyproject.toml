@@ -1,0 +1,20 @@
+[project]
+name = "lerp"
+version = "0.1.0"
+description = "LERP, a Limitless ERP: an AI-native operations platform that plugs into the ledger you already have."
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "DJ"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["lerp"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "lerp.settings_test"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
