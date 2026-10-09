@@ -1,0 +1,49 @@
+# The minimum-cost stack: one PostgreSQL and one app container. It runs on a laptop
+# or a single small VM. Copy .env.example to .env first.
+name: lerp
+
+services:
+  db:
+    image: pgvector/pgvector:pg18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lerp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:?set it in .env}
+      LERP_OWNER_PASSWORD: ${DB_OWNER_PASSWORD:?set it in .env}
+      LERP_APP_PASSWORD: ${DB_PASSWORD:?set it in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./deploy/postgres/initdb:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lerp"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set it in .env}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-0}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      DB_HOST: db
+      DB_NAME: lerp
+      DB_USER: lerp_app
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_OWNER_USER: lerp_owner
+      DB_OWNER_PASSWORD: ${DB_OWNER_PASSWORD}
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-2}
+      LERP_AI_HOSTED_PROVIDER: ${LERP_AI_HOSTED_PROVIDER:-}
+      LERP_AI_LOCAL_PROVIDER: ${LERP_AI_LOCAL_PROVIDER:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+
+volumes:
+  pgdata:

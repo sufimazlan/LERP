@@ -1,0 +1,6 @@
+# Runtime dependencies. Every one is open source with no per-user licence.
+Django~=5.2.18          # LTS, security fixes until April 2028
+django-ninja~=1.7       # typed REST API with OpenAPI
+psycopg[binary]~=3.3    # PostgreSQL driver
+gunicorn~=26.2          # WSGI server
+whitenoise~=6.12        # serves static files from the app, so no separate web server is needed
